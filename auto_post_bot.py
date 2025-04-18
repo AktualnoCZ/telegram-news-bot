@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 import feedparser
 import requests
 from bs4 import BeautifulSoup
@@ -9,11 +8,10 @@ import logging
 import asyncio
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
+import os
 
-# 📦 Завантаження змінних середовища з .env
+# 🔑 Завантаження змінних середовища
 load_dotenv()
-
-# 🔑 Ключі та налаштування
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -84,22 +82,22 @@ async def post_rss_news(feed_url, tag):
                 "Jobs": "💼",
                 "Crypto": "💰",
                 "Tech": "🚀",
-                "Business": "📊",
                 "Startups": "🌱",
-                "Ukraine": "🇺🇦"
+                "Ukraine": "🇺🇦",
+                "Ukraine CZ": "🧳",
+                "Travel CZ": "🗺️"
             }.get(tag, "📰")
             await send_post(f"{emoji} {entry.title}", entry.link, translated, image_url)
             break
 
 # 🔹 Повний ручний тест усіх джерел
 async def manual_test_all():
-    await post_rss_news("https://www.prace.cz/hledat/?searchForm%5Blocality_codes%5D=&searchForm%5Bprofs%5D=&searchForm%5Bother%5D=&searchForm%5Bemployment_type_codes%5D%5B%5D=201300001&searchForm%5Bemployment_type_codes%5D%5B%5D=201300002&searchForm%5Bemployment_type_codes%5D%5B%5D=201300004&searchForm%5Bminimal_salary%5D=30000&searchForm%5Beducation%5D=&searchForm%5Bsuitable_for%5D=&searchForm%5Bsearch%5D=", "Jobs")
     await post_rss_news("https://cryptoslate.com/feed/", "Crypto")
     await post_rss_news("https://techcrunch.com/feed/", "Tech")
-    await post_rss_news("https://www.forbes.com/business/feed/", "Business")
-    await post_rss_news("https://www.wired.com/feed/rss", "Tech")
     await post_rss_news("https://www.eu-startups.com/feed/", "Startups")
     await post_rss_news("https://www.pravda.com.ua/rss/", "Ukraine")
+    await post_rss_news("https://www.ukrajinci.cz/rss", "Ukraine CZ")
+    await post_rss_news("https://www.kudyznudy.cz/rss", "Travel CZ")
 
 # 🔹 Тестовий запуск: перевірка доступу
 async def test_message():
@@ -107,13 +105,12 @@ async def test_message():
 
 # Планувальник
 scheduler = AsyncIOScheduler()
-scheduler.add_job(lambda: post_rss_news("https://www.prace.cz/hledat/?searchForm%5Blocality_codes%5D=&searchForm%5Bprofs%5D=&searchForm%5Bother%5D=&searchForm%5Bemployment_type_codes%5D%5B%5D=201300001&searchForm%5Bemployment_type_codes%5D%5B%5D=201300002&searchForm%5Bemployment_type_codes%5D%5B%5D=201300004&searchForm%5Bminimal_salary%5D=30000&searchForm%5Beducation%5D=&searchForm%5Bsuitable_for%5D=&searchForm%5Bsearch%5D=", "Jobs"), 'cron', hour=9)
-scheduler.add_job(lambda: post_rss_news("https://www.forbes.com/business/feed/", "Business"), 'cron', hour=11)
-scheduler.add_job(lambda: post_rss_news("https://www.wired.com/feed/rss", "Tech"), 'cron', hour=13)
-scheduler.add_job(lambda: post_rss_news("https://cryptoslate.com/feed/", "Crypto"), 'cron', hour=15)
-scheduler.add_job(lambda: post_rss_news("https://www.eu-startups.com/feed/", "Startups"), 'cron', hour=17)
-scheduler.add_job(lambda: post_rss_news("https://www.pravda.com.ua/rss/", "Ukraine"), 'cron', hour=18)
-scheduler.add_job(lambda: post_rss_news("https://www.prace.cz/hledat/?searchForm%5Blocality_codes%5D=&searchForm%5Bprofs%5D=&searchForm%5Bother%5D=&searchForm%5Bemployment_type_codes%5D%5B%5D=201300001&searchForm%5Bemployment_type_codes%5D%5B%5D=201300002&searchForm%5Bemployment_type_codes%5D%5B%5D=201300004&searchForm%5Bminimal_salary%5D=30000&searchForm%5Beducation%5D=&searchForm%5Bsuitable_for%5D=&searchForm%5Bsearch%5D=", "Jobs"), 'cron', hour=19)
+scheduler.add_job(lambda: post_rss_news("https://cryptoslate.com/feed/", "Crypto"), 'cron', hour=9)
+scheduler.add_job(lambda: post_rss_news("https://techcrunch.com/feed/", "Tech"), 'cron', hour=11)
+scheduler.add_job(lambda: post_rss_news("https://www.eu-startups.com/feed/", "Startups"), 'cron', hour=13)
+scheduler.add_job(lambda: post_rss_news("https://www.pravda.com.ua/rss/", "Ukraine"), 'cron', hour=15)
+scheduler.add_job(lambda: post_rss_news("https://www.ukrajinci.cz/rss", "Ukraine CZ"), 'cron', hour=17)
+scheduler.add_job(lambda: post_rss_news("https://www.kudyznudy.cz/rss", "Travel CZ"), 'cron', hour=18)
 
 # Запуск
 async def main():
